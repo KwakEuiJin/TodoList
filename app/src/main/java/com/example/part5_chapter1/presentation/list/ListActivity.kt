@@ -5,6 +5,11 @@ import android.content.Intent
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
+import androidx.activity.result.ActivityResult
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.ActivityResultRegistry
+import androidx.activity.result.contract.ActivityResultContract
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.view.isGone
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.part5_chapter1.R
@@ -25,12 +30,22 @@ internal class ListActivity : BaseActivity<ListViewModel>(), CoroutineScope {
     private lateinit var binding: ActivityListBinding
 
     private val adapter = ToDoAdapter()
+    private lateinit var startForResult:ActivityResultLauncher<Intent>
+
 
     override val viewModel: ListViewModel by viewModel()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityListBinding.inflate(layoutInflater)
+
+        startForResult =
+            registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+                if (result.resultCode == RESULT_OK) {
+                    viewModel.fetchData()
+                }
+            }
+
         setContentView(binding.root)
     }
 
@@ -44,10 +59,9 @@ internal class ListActivity : BaseActivity<ListViewModel>(), CoroutineScope {
         }
 
         addToDoButton.setOnClickListener {
-            startActivityForResult(
-                DetailActivity.getIntent(this@ListActivity, DetailMode.WRITE),
-                DetailActivity.FETCH_REQUEST_CODE
-            )
+            val intent: Intent = DetailActivity.getIntent(this@ListActivity, DetailMode.WRITE)
+            startForResult.launch(intent)
+
         }
     }
 
@@ -78,19 +92,19 @@ internal class ListActivity : BaseActivity<ListViewModel>(), CoroutineScope {
         refreshLayout.isEnabled = state.toDoList.isNotEmpty()
         refreshLayout.isRefreshing = false
 
+
         if (state.toDoList.isEmpty()) {
             emptyResultTextView.isGone = false
             recyclerView.isGone = true
         } else {
             emptyResultTextView.isGone = true
             recyclerView.isGone = false
+            adapter.submitList(state.toDoList)
             adapter.setToDoList(
-                state.toDoList,
                 toDoItemClickListener = {
-                    startActivityForResult(
-                        DetailActivity.getIntent(this@ListActivity, it.id, DetailMode.DETAIL),
-                        DetailActivity.FETCH_REQUEST_CODE
-                    )
+                    val intent: Intent =
+                        DetailActivity.getIntent(this@ListActivity, DetailMode.DETAIL)
+                    startForResult.launch(intent)
                 }, toDoCheckListener = {
                     viewModel.updateEntity(it)
                 }
@@ -98,12 +112,6 @@ internal class ListActivity : BaseActivity<ListViewModel>(), CoroutineScope {
         }
     }
 
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-        if (requestCode == DetailActivity.FETCH_REQUEST_CODE && resultCode == Activity.RESULT_OK) {
-            viewModel.fetchData()
-        }
-    }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {

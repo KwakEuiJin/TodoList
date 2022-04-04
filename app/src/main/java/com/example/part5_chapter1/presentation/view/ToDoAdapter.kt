@@ -1,17 +1,18 @@
 package com.example.part5_chapter1.presentation.view
 
+import android.annotation.SuppressLint
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.core.content.ContextCompat
+import androidx.recyclerview.widget.DiffUtil
+import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.example.part5_chapter1.R
 import com.example.part5_chapter1.data.entity.ToDoEntity
 import com.example.part5_chapter1.databinding.ViewholderTodoItemBinding
 
 
-class ToDoAdapter : RecyclerView.Adapter<ToDoAdapter.ToDoItemViewHolder>() {
-
-    private var toDoList: List<ToDoEntity> = listOf()
+class ToDoAdapter : ListAdapter<ToDoEntity,ToDoAdapter.ToDoItemViewHolder>(diffUtil) {
     private lateinit var toDoItemClickListener: (ToDoEntity) -> Unit
     private lateinit var toDoCheckListener: (ToDoEntity) -> Unit
 
@@ -59,16 +60,35 @@ class ToDoAdapter : RecyclerView.Adapter<ToDoAdapter.ToDoItemViewHolder>() {
     }
 
     override fun onBindViewHolder(holder: ToDoItemViewHolder, position: Int) {
-        holder.bindData(toDoList[position])
-        holder.bindViews(toDoList[position])
+        holder.bindData(currentList[position])
+        holder.bindViews(currentList[position])
     }
 
-    override fun getItemCount(): Int = toDoList.size
 
-    fun setToDoList(toDoList: List<ToDoEntity>, toDoItemClickListener: (ToDoEntity) -> Unit, toDoCheckListener: (ToDoEntity) -> Unit) {
-        this.toDoList = toDoList
+
+    @SuppressLint("NotifyDataSetChanged")
+    fun setToDoList(toDoItemClickListener: (ToDoEntity) -> Unit, toDoCheckListener: (ToDoEntity) -> Unit) {
         this.toDoItemClickListener = toDoItemClickListener
         this.toDoCheckListener = toDoCheckListener
         notifyDataSetChanged()
+    }
+
+    companion object{
+        private val diffUtil = object : DiffUtil.ItemCallback<ToDoEntity>() {
+            override fun areItemsTheSame(
+                oldItem: ToDoEntity,
+                newItem: ToDoEntity
+            ): Boolean {
+                return oldItem.id == newItem.id
+            }
+
+            override fun areContentsTheSame(
+                oldItem: ToDoEntity,
+                newItem: ToDoEntity
+            ): Boolean {
+                return oldItem == newItem
+            }
+
+        }
     }
 }

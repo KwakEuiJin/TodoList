@@ -26,6 +26,7 @@
                 android:layout_height="wrap_content"
                 android:hint="@string/title"
                 android:maxLines="1"
+                android:inputType="text"
                 android:textAppearance="@style/TextAppearance.AppCompat.Title" />
 
             <EditText
