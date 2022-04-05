@@ -3,6 +3,7 @@ package com.example.part5_chapter1.presentation.list
 import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import androidx.activity.result.ActivityResult
@@ -103,7 +104,8 @@ internal class ListActivity : BaseActivity<ListViewModel>(), CoroutineScope {
             adapter.setToDoList(
                 toDoItemClickListener = {
                     val intent: Intent =
-                        DetailActivity.getIntent(this@ListActivity, DetailMode.DETAIL)
+                        DetailActivity.getIntent(this@ListActivity,it.id, DetailMode.DETAIL)
+                    Log.d("Log", it.toString())
                     startForResult.launch(intent)
                 }, toDoCheckListener = {
                     viewModel.updateEntity(it)
